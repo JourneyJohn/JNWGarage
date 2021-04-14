@@ -13,6 +13,8 @@
 		5243B4D32617349E00BA3582 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5243B4D12617349E00BA3582 /* Main.storyboard */; };
 		5243B4D5261734A000BA3582 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5243B4D4261734A000BA3582 /* Assets.xcassets */; };
 		5243B4D8261734A000BA3582 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5243B4D6261734A000BA3582 /* LaunchScreen.storyboard */; };
+		5243B4E12617354000BA3582 /* JNWGarage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5243B4E02617354000BA3582 /* JNWGarage.swift */; };
+		528AC1AD26270B310069FDDC /* JNWNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 528AC1AC26270B310069FDDC /* JNWNetwork.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +26,8 @@
 		5243B4D4261734A000BA3582 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5243B4D7261734A000BA3582 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		5243B4D9261734A000BA3582 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5243B4E02617354000BA3582 /* JNWGarage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JNWGarage.swift; sourceTree = "<group>"; };
+		528AC1AC26270B310069FDDC /* JNWNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JNWNetwork.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +67,8 @@
 				5243B4D4261734A000BA3582 /* Assets.xcassets */,
 				5243B4D6261734A000BA3582 /* LaunchScreen.storyboard */,
 				5243B4D9261734A000BA3582 /* Info.plist */,
+				5243B4E02617354000BA3582 /* JNWGarage.swift */,
+				528AC1AC26270B310069FDDC /* JNWNetwork.swift */,
 			);
 			path = JNWGarage;
 			sourceTree = "<group>";
@@ -137,6 +143,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5243B4E12617354000BA3582 /* JNWGarage.swift in Sources */,
+				528AC1AD26270B310069FDDC /* JNWNetwork.swift in Sources */,
 				5243B4D02617349E00BA3582 /* ViewController.swift in Sources */,
 				5243B4CC2617349E00BA3582 /* AppDelegate.swift in Sources */,
 				5243B4CE2617349E00BA3582 /* SceneDelegate.swift in Sources */,
