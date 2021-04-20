@@ -11,7 +11,8 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        
+        JNWNetwork.shared.request(with: <#T##URL#>, method: <#T##JNWNetwork.RequestMethod#>, successHandler: <#T##((Data?) -> ())?##((Data?) -> ())?##(Data?) -> ()#>, failureHandler: <#T##((Error) -> ())?##((Error) -> ())?##(Error) -> ()#>)
     }
 
 

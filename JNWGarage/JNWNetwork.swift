@@ -9,16 +9,18 @@ import UIKit
 
 class JNWNetwork {
     
-    enum RequestMethod {
-        case GET
-        case POST
-        case PUT
-        case DELETE
+    enum RequestMethod: String {
+        case GET = "GET"
+        case POST = "POST"
+        case PUT = "PUT"
+        case DELETE = "DELETE"
     }
     
     let networkQueueStr = "com.john.jnwnetwork.queue"
     
     let networkQueue: DispatchQueue
+    
+    let networkOperationQueue: OperationQueue
     
     static let shared = JNWNetwork()
     
@@ -28,30 +30,115 @@ class JNWNetwork {
                                      attributes: .concurrent,
                                      autoreleaseFrequency: .inherit,
                                      target: nil)
+        
+        networkOperationQueue = OperationQueue()
+        networkOperationQueue.maxConcurrentOperationCount = 1
+        networkOperationQueue.name = networkQueueStr
+        networkOperationQueue.qualityOfService = .background
     }
     
-    func request(url: URL,
-                 method: RequestMethod,
-                 header: [String:String]? = nil,
-                 params: [String:String]? = nil,
-                 body: [String:String]? = nil,
-                 cachePolicy: NSURLRequest.CachePolicy = .reloadIgnoringCacheData,
-                 timeoutInterval: TimeInterval = 60.0,
-                 successHandler: (() -> ())? = nil,
-                 failureHandler: ((Error) -> ())?) {
+    func request(with url: String, method: JNWNetwork.RequestMethod, params: [String: Any]? = nil, successHandler: ((Data?) -> ())?, failureHandler: ((Error) -> ())?) {
+        var processedURL = url
+        var body: Data? = nil
+        switch method {
+        case .POST:
+            body = getData(from: params)
+        case .GET:
+            processedURL = makeupURL(with: url, params: params)
+        default:
+            print("not support")
+        }
         
-        let request = URLRequest(url: url, cachePolicy: cachePolicy, timeoutInterval: timeoutInterval)
+        guard let requestUrl = URL(string: processedURL) else { return }
+        let op = JNWNetworkRequestOperation(url: requestUrl, method: method, body: body, successHandler: successHandler, failureHandler: failureHandler)
+        networkOperationQueue.addOperation(op)
         
-        let dataTask = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            let httpResponse = response as? HTTPURLResponse
-            let statusCode = httpResponse?.statusCode
+    }
+    
+    func makeupURL(with urlString: String, params: [String: Any]?) -> String {
+        var resultUrl = urlString
+        guard let paramsTmp = params else { return urlString }
+        if resultUrl.contains("?") {
+            for item in paramsTmp {
+                resultUrl = "\(resultUrl)&\(item.key)=\(item.value)"
+            }
+        } else {
+            for item in paramsTmp.enumerated() {
+                if item.offset == 0 {
+                    resultUrl = "\(resultUrl)?\(item.element.key)=\(item.element.value)"
+                } else {
+                    resultUrl = "\(resultUrl)&\(item.element.key)=\(item.element.value)"
+                }
+            }
+        }
+    }
+    
+    func getData(from dict: [String: Any]?) -> Data? {
+        guard let dictTmp = dict else { return nil }
+        let data = try? JSONSerialization.data(withJSONObject: dictTmp, options: .fragmentsAllowed)
+        return data
+    }
+    
+}
+
+class JNWNetworkRequestOperation: Operation {
+    
+    let url: URL
+    let method: JNWNetwork.RequestMethod
+    let header: [String:String]?
+    let params: [String:String]?
+    let body: Data?
+    let cachePolicy: NSURLRequest.CachePolicy
+    let timeoutInterval: TimeInterval
+    let successHandler: ((Data?) -> ())?
+    let failureHandler: ((Error) -> ())?
+    var dataTask: URLSessionDataTask?
+    
+    
+    init(url: URL,
+              method: JNWNetwork.RequestMethod,
+              header: [String:String]? = nil,
+              params: [String:String]? = nil,
+              body: Data? = nil,
+              cachePolicy: NSURLRequest.CachePolicy = .reloadIgnoringCacheData,
+              timeoutInterval: TimeInterval = 60.0,
+              successHandler: ((Data?) -> ())? = nil,
+              failureHandler: ((Error) -> ())? = nil) {
+        
+        self.url = url
+        self.method = method
+        self.header = header
+        self.params = params
+        self.body = body
+        self.cachePolicy = cachePolicy
+        self.timeoutInterval = timeoutInterval
+        self.successHandler = successHandler
+        self.failureHandler = failureHandler
+        
+    }
+    
+    override func main() {
+        dataTask?.cancel()
+        dataTask = request()
+        dataTask?.resume()
+    }
+    
+    func request() -> URLSessionDataTask {
+        
+        var request = URLRequest(url: url, cachePolicy: cachePolicy, timeoutInterval: timeoutInterval)
+        request.httpMethod = method.rawValue
+        request.httpBody = body
+        let dataTask = URLSession.shared.dataTask(with: request) { [weak self] (data, response, error) in
+            guard let sself = self else { return }
+//            let httpResponse = response as? HTTPURLResponse
+//            let statusCode = httpResponse?.statusCode
             if let errorTmp = error {
-                failureHandler?(errorTmp)
+                sself.failureHandler?(errorTmp)
             } else {
-                successHandler?()
+                sself.successHandler?(data)
             }
         }
         
-        dataTask.resume()
+        return dataTask
     }
 }
