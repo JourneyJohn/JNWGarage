@@ -16,6 +16,9 @@ class JNWNetwork {
         case DELETE = "DELETE"
     }
     
+    typealias SuccessResponseHandler = ((Data?, URLResponse?) -> ())
+    typealias FailureResponseHandler = ((Error?) -> ())
+    
     let networkQueueStr = "com.john.jnwnetwork.queue"
     
     let networkQueue: DispatchQueue
@@ -37,7 +40,16 @@ class JNWNetwork {
         networkOperationQueue.qualityOfService = .background
     }
     
-    func request(with url: String, method: JNWNetwork.RequestMethod, params: [String: Any]? = nil, successHandler: ((Data?) -> ())?, failureHandler: ((Error) -> ())?) {
+    public func request<T: Decodable>(with url: String, method: JNWNetwork.RequestMethod, params: [String: Any]? = nil, successHandler: ((T?) -> ())?, failureHandler: FailureResponseHandler?) {
+        
+        request(with: url, method: method, successHandler: { (data, reponse) in
+            let model = data?.jnw.transferToModel(modelType: T.self)
+            successHandler?(model)
+        }, failureHandler: failureHandler)
+
+    }
+    
+    public func request(with url: String, method: JNWNetwork.RequestMethod, params: [String: Any]? = nil, successHandler: SuccessResponseHandler?, failureHandler: FailureResponseHandler?) {
         var processedURL = url
         var body: Data? = nil
         switch method {
@@ -52,7 +64,6 @@ class JNWNetwork {
         guard let requestUrl = URL(string: processedURL) else { return }
         let op = JNWNetworkRequestOperation(url: requestUrl, method: method, body: body, successHandler: successHandler, failureHandler: failureHandler)
         networkOperationQueue.addOperation(op)
-        
     }
     
     func makeupURL(with urlString: String, params: [String: Any]?) -> String {
@@ -71,6 +82,7 @@ class JNWNetwork {
                 }
             }
         }
+        return resultUrl
     }
     
     func getData(from dict: [String: Any]?) -> Data? {
@@ -90,8 +102,8 @@ class JNWNetworkRequestOperation: Operation {
     let body: Data?
     let cachePolicy: NSURLRequest.CachePolicy
     let timeoutInterval: TimeInterval
-    let successHandler: ((Data?) -> ())?
-    let failureHandler: ((Error) -> ())?
+    let successHandler: JNWNetwork.SuccessResponseHandler?
+    let failureHandler: JNWNetwork.FailureResponseHandler?
     var dataTask: URLSessionDataTask?
     
     
@@ -102,8 +114,8 @@ class JNWNetworkRequestOperation: Operation {
               body: Data? = nil,
               cachePolicy: NSURLRequest.CachePolicy = .reloadIgnoringCacheData,
               timeoutInterval: TimeInterval = 60.0,
-              successHandler: ((Data?) -> ())? = nil,
-              failureHandler: ((Error) -> ())? = nil) {
+              successHandler: JNWNetwork.SuccessResponseHandler? = nil,
+              failureHandler: JNWNetwork.FailureResponseHandler? = nil) {
         
         self.url = url
         self.method = method
@@ -128,14 +140,14 @@ class JNWNetworkRequestOperation: Operation {
         var request = URLRequest(url: url, cachePolicy: cachePolicy, timeoutInterval: timeoutInterval)
         request.httpMethod = method.rawValue
         request.httpBody = body
-        let dataTask = URLSession.shared.dataTask(with: request) { [weak self] (data, response, error) in
-            guard let sself = self else { return }
+        let dataTask = URLSession.shared.dataTask(with: request) { (data, response, error) in
+//            guard let sself = self else { return }
 //            let httpResponse = response as? HTTPURLResponse
 //            let statusCode = httpResponse?.statusCode
             if let errorTmp = error {
-                sself.failureHandler?(errorTmp)
+                self.failureHandler?(errorTmp)
             } else {
-                sself.successHandler?(data)
+                self.successHandler?(data, response)
             }
         }
         

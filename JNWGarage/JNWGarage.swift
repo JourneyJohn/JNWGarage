@@ -21,7 +21,7 @@ public struct JNWAdaptorTypeWrapper<Base> {
     }
 }
 
-public protocol JNWAdaptor: AnyObject { }
+public protocol JNWAdaptor { }
 public protocol JNWTypeAdaptor { }
 
 extension JNWAdaptor {

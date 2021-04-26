@@ -12,7 +12,13 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        JNWNetwork.shared.request(with: <#T##URL#>, method: <#T##JNWNetwork.RequestMethod#>, successHandler: <#T##((Data?) -> ())?##((Data?) -> ())?##(Data?) -> ()#>, failureHandler: <#T##((Error) -> ())?##((Error) -> ())?##(Error) -> ()#>)
+        JNWNetwork.shared.request(with: "https://www.baidu.com", method: .GET) { (data, response) in
+            
+        } failureHandler: { (error) in
+            
+        }
+
+        
     }
 
 
