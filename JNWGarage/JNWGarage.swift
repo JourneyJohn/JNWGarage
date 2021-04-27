@@ -38,11 +38,11 @@ extension JNWTypeAdaptor {
     }
 }
 
-extension JNWAdaptorWrapper where Base: UIColor {
-    
-}
+//extension JNWAdaptorWrapper where Base: UIColor {
+//    
+//}
 
 
 // MARK: color
-extension UIColor: JNWAdaptor { }
-extension UIColor: JNWTypeAdaptor { }
+//extension UIColor: JNWAdaptor { }
+//extension UIColor: JNWTypeAdaptor { }

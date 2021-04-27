@@ -25,6 +25,8 @@ class JNWNetwork {
     
     let networkOperationQueue: OperationQueue
     
+    var callbackQueue: OperationQueue = .main
+    
     static let shared = JNWNetwork()
     
     init() {
@@ -40,12 +42,26 @@ class JNWNetwork {
         networkOperationQueue.qualityOfService = .background
     }
     
+    public func callbackInQueue(queue: OperationQueue) -> Self {
+        callbackQueue = queue
+        return self
+    }
+    
     public func request<T: Decodable>(with url: String, method: JNWNetwork.RequestMethod, params: [String: Any]? = nil, successHandler: ((T?) -> ())?, failureHandler: FailureResponseHandler?) {
         
-        request(with: url, method: method, successHandler: { (data, reponse) in
+        let callbackQueue = self.callbackQueue
+        
+        request(with: url, method: method, params: params) { (data, response) in
             let model = data?.jnw.transferToModel(modelType: T.self)
-            successHandler?(model)
-        }, failureHandler: failureHandler)
+            callbackQueue.addOperation {
+                successHandler?(model)
+            }
+        } failureHandler: { (error) in
+            callbackQueue.addOperation {
+                failureHandler?(error)
+            }
+        }
+
 
     }
     
@@ -62,7 +78,8 @@ class JNWNetwork {
         }
         
         guard let requestUrl = URL(string: processedURL) else { return }
-        let op = JNWNetworkRequestOperation(url: requestUrl, method: method, body: body, successHandler: successHandler, failureHandler: failureHandler)
+        let callbackQueue = self.callbackQueue
+        let op = JNWNetworkRequestOperation(url: requestUrl, method: method, body: body, callbackQueue: callbackQueue, successHandler: successHandler, failureHandler: failureHandler)
         networkOperationQueue.addOperation(op)
     }
     
@@ -105,6 +122,7 @@ class JNWNetworkRequestOperation: Operation {
     let successHandler: JNWNetwork.SuccessResponseHandler?
     let failureHandler: JNWNetwork.FailureResponseHandler?
     var dataTask: URLSessionDataTask?
+    var callbackQueue: OperationQueue
     
     
     init(url: URL,
@@ -114,6 +132,7 @@ class JNWNetworkRequestOperation: Operation {
               body: Data? = nil,
               cachePolicy: NSURLRequest.CachePolicy = .reloadIgnoringCacheData,
               timeoutInterval: TimeInterval = 60.0,
+              callbackQueue: OperationQueue = .main,
               successHandler: JNWNetwork.SuccessResponseHandler? = nil,
               failureHandler: JNWNetwork.FailureResponseHandler? = nil) {
         
@@ -124,6 +143,7 @@ class JNWNetworkRequestOperation: Operation {
         self.body = body
         self.cachePolicy = cachePolicy
         self.timeoutInterval = timeoutInterval
+        self.callbackQueue = callbackQueue
         self.successHandler = successHandler
         self.failureHandler = failureHandler
         
@@ -145,9 +165,13 @@ class JNWNetworkRequestOperation: Operation {
 //            let httpResponse = response as? HTTPURLResponse
 //            let statusCode = httpResponse?.statusCode
             if let errorTmp = error {
-                self.failureHandler?(errorTmp)
+                self.callbackQueue.addOperation {
+                    self.failureHandler?(errorTmp)
+                }
             } else {
-                self.successHandler?(data, response)
+                self.callbackQueue.addOperation {
+                    self.successHandler?(data, response)
+                }
             }
         }
         
