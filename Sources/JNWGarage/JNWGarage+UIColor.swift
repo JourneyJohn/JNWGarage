@@ -5,7 +5,13 @@
 //  Created by John on 2021/4/27.
 //
 
+#if os(iOS) || os(tvOS) //os(macOS)
 import UIKit
+#else
+import AppKit
+#endif
+
+#if os(iOS) || os(tvOS) //os(macOS)
 
 extension UIColor : JNWTypeAdaptor { }
 
@@ -53,3 +59,6 @@ extension JNWAdaptorTypeWrapper where Base == UIColor.Type {
         return UIColor(red: CGFloat(Double(r)/255.0), green: CGFloat(Double(g)/255.0), blue: CGFloat(Double(b)/255.0), alpha: alpha)
     }
 }
+
+#else
+#endif

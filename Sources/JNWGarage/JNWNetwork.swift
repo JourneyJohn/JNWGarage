@@ -5,8 +5,13 @@
 //  Created by John on 2021/4/14.
 //
 
+#if os(iOS) || os(tvOS) //os(macOS)
 import UIKit
+#else
+import AppKit
+#endif
 
+#if os(iOS) || os(tvOS) //os(macOS)
 class JNWNetwork {
     
     enum RequestMethod: String {
@@ -178,3 +183,6 @@ class JNWNetworkRequestOperation: Operation {
         return dataTask
     }
 }
+
+#else
+#endif

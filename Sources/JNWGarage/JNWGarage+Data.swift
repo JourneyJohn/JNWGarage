@@ -5,7 +5,13 @@
 //  Created by John on 2021/4/26.
 //
 
+#if os(iOS) || os(tvOS) //os(macOS)
 import UIKit
+#else
+import AppKit
+#endif
+
+#if os(iOS) || os(tvOS) //os(macOS)
 
 extension Data : JNWAdaptor { }
 
@@ -23,3 +29,6 @@ extension JNWAdaptorWrapper where Base == Data {
         return model
     }
 }
+
+#else
+#endif
